@@ -1,5 +1,12 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=4f34ef4a_002D04a5_002D43b8_002Db1d1_002D5d76a382feb5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=2e5a9aa1_002Ddc12_002D4fca_002Db867_002Da265d11e4a70/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="Test_4" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
+  &lt;TestAncestor&gt;
+    &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day5.Day5.Test_4&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day5.Day5_2.Test_1&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day5.Day5_2.Test_2&lt;/TestId&gt;
+  &lt;/TestAncestor&gt;
+&lt;/SessionState&gt;</s:String>
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=4f34ef4a_002D04a5_002D43b8_002Db1d1_002D5d76a382feb5/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Test1" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;
   &lt;TestAncestor&gt;
     &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day2.Day2.Test_1&lt;/TestId&gt;
     &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day2.Day2.Test_2&lt;/TestId&gt;
@@ -8,5 +15,7 @@
     &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day4.Day4.Test_1&lt;/TestId&gt;
     &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day4.Day4.Test_1_2&lt;/TestId&gt;
     &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day5.Day5.Test_1&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day5.Day5.Test_2&lt;/TestId&gt;
+    &lt;TestId&gt;NUnit3x::3933C568-88F7-44A9-88EE-7DD689D3391C::net7.0::Advent_of_code.Day5.Day5.Test_3&lt;/TestId&gt;
   &lt;/TestAncestor&gt;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
