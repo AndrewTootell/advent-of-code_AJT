@@ -2,7 +2,7 @@ namespace Advent_of_code.Day6;
 
 public class Day7
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var data = ReadInput("Day7/Data.txt");
@@ -38,7 +38,7 @@ public class Day7
         // 250898830
     }
     
-    [Test]
+    [Fact]
     public void Test_2()
     {
         var data = ReadInput("Day7/Data.txt");

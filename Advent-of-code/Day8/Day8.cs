@@ -3,7 +3,7 @@ namespace Advent_of_code.Day8;
 
 public class Day8
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var (input,data) = ReadInput("Day8/Data.txt");
@@ -31,7 +31,7 @@ public class Day8
         // Data: 16271
     }
     
-    [Test]
+    [Fact]
     public void Test_2()
     {
         var (input,data) = ReadInput("Day8/Data.txt");

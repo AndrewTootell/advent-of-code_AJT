@@ -2,7 +2,7 @@ namespace Advent_of_code.Day2;
 
 public class Day2
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var gameCount = 0;
@@ -69,7 +69,7 @@ public class Day2
         
     }
     
-    [Test]
+    [Fact]
     public void Test_2()
     {
         var gameCount = 0;

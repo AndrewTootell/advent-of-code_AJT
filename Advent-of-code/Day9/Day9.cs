@@ -3,7 +3,7 @@ namespace Advent_of_code.Day9;
 
 public class Day9
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var data = ReadInput(9, false, 0);
@@ -18,7 +18,7 @@ public class Day9
         // Data: 1479011877
     }
     
-    [Test]
+    [Fact]
     public void Test_2()
     {
         var data = ReadInput(9, false, 0);

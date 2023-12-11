@@ -1,3 +1,5 @@
+using FluentAssertions;
+
 namespace Advent_of_code.Day10;
 
 public class Day10
@@ -14,7 +16,7 @@ public class Day10
        . is ground; there is no pipe in this tile.
      */
     
-    [Test]
+    [Fact]
     public void Test_1()
     {
         ReadInput(10);
@@ -30,14 +32,13 @@ public class Day10
         // Data: 6757
     }
 
-    
-    [DatapointSource]
-    public (bool, int, int)[] testData = new (bool, int, int)[] { (true, 1, 4), (true, 2, 8), (true, 3, 10), (false, 0, 523) };
-    
     [Theory]
-    public void Test_2((bool, int, int) input)
+    [InlineData(true, 1, 4)]
+    [InlineData(true, 2, 8)]
+    [InlineData(true, 3, 10)]
+    [InlineData(false, 0, 523)]
+    public void Test_2(bool isTest, int testDataCount, int expectedAnswer)
     {
-        (bool isTest, int testDataCount, int expectedAnswer) = input;
         ReadInput(10, isTest, testDataCount);
 
         var snakeLocation = FindSnake();
@@ -74,7 +75,7 @@ public class Day10
         }
         
         Console.WriteLine($"Nest size: {count}");
-        Assert.That(count, Is.EqualTo(expectedAnswer));
+        count.Should().Be(expectedAnswer);
     }
 
     private static bool IsSnakeVerticalLine(CoOrds startLocation, CoOrds firstLocation, CoOrds otherFirstLocation)

@@ -4,7 +4,7 @@ namespace Advent_of_code.Day4;
 
 public class Day4
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var sumTotal = 0;
@@ -60,7 +60,7 @@ public class Day4
         Console.WriteLine(sumTotal);
     }
     
-    [Test]
+    [Fact]
     public void Test_1_2()
     {
         List<(List<int>, List<int>)> cards = new();

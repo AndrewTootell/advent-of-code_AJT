@@ -12,7 +12,7 @@ public class Day3
         public int? Value;
     }
     
-    [Test]
+    [Fact]
     public void Task_1()
     {
         var lines = new List<string>();
@@ -114,7 +114,7 @@ public class Day3
         Console.WriteLine(sumTotal);
     }
     
-    [Test]
+    [Fact]
     public void Task_2()
     {
         var lines = new List<string>();

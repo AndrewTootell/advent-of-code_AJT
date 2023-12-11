@@ -2,7 +2,7 @@ namespace Advent_of_code.Day6;
 
 public class Day6
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var data = ReadInput("Day6/Data.txt");
@@ -28,7 +28,7 @@ public class Day6
         Console.WriteLine(total);
     }
     
-    [Test]
+    [Fact]
     public void Test_2()
     {
         var data = ReadInput("Day6/Data.txt");

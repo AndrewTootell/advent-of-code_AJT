@@ -2,7 +2,7 @@ namespace Advent_of_code.Day1;
 
 public class Day1
 {
-    [Test]
+    [Fact]
     public void Test_1()
     {
         var sumTotal = 0;
@@ -20,7 +20,7 @@ public class Day1
         Console.WriteLine(sumTotal);
     }
     
-    [Test]
+    [Fact]
     public void Test_1_2()
     {
         var sumTotal = 0;
