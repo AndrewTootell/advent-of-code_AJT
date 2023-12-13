@@ -7,7 +7,7 @@ public class Day11
     [Theory]
     [InlineData(true, 0, 374)]
     [InlineData(false, 0, 9686930)]
-    public void Test_1(bool isTest, int testDataCount, int expectedAnswer)
+    public void Test_1(bool isTest, int testDataCount, long expectedAnswer)
     {
         var data = ReadInput(11, isTest, testDataCount);
         var galaxies = ParseData(data, 2);
