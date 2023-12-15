@@ -1,5 +1,4 @@
 using FluentAssertions;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Xunit.Abstractions;
 
 namespace Advent_of_code.Day12;
@@ -7,7 +6,11 @@ namespace Advent_of_code.Day12;
 public class Day12
 {
     private readonly ITestOutputHelper _testOutputHelper;
-
+    private readonly Dictionary<string,List<List<int>>> _tryGetVariations = new();
+    private readonly Dictionary<string,int> _tryVariationsCache = new();
+    private readonly List<(List<List<int>>, SpringRow)> _vars = new();
+    private readonly List<long> _subTotals = new();
+    
     public Day12(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
@@ -18,80 +21,198 @@ public class Day12
     [InlineData(false, 0, 7344)]
     public void Test_1(bool isTest, int testDataCount, long expectedAnswer)
     {
+        var startTime = DateTime.Now;
         var input = ReadInput(12, isTest, testDataCount);
         var data = ParseData(input);
-        long total = 0;
-        
-        data.ForEach(springRow =>
-        {
-            var subTotal = RunLogic(springRow.Id, springRow.Row, springRow.Groups);
-            total += subTotal;
-        });
+        long total = RunLogic(data);
         _testOutputHelper.WriteLine($"Total: {total}");
         total.Should().Be(expectedAnswer);
+    }
+
+    public static IEnumerable<object[]> GetTestCases()
+    {
+        return Day12TestCases.TestCases();
+    }
+    
+    [Theory]
+    [MemberData(nameof(GetTestCases))]
+    public void Test_1_1(Day12TestCases.TestCase testCase)
+    {
+        var springRow = testCase.springRow;
+        var groups = testCase.groups;
+        var springRowObj = new SpringRow
+        {
+            Groups = testCase.groups,
+            Row = testCase.springRow
+        };
+        long total = RunLogic(new List<SpringRow>{springRowObj});
+        
+        total.Should().Be(testCase.expectedAnswer);
     }
     
     [Theory]
     [InlineData(true, 0,  0)]
-    [InlineData(false, 0,  0)]
+    [InlineData(true, 1,  0)]
+//    [InlineData(false, 0,  0)]
     public void Test_2(bool isTest, int testDataCount, long expectedAnswer)
     {
+        var startTime = DateTime.Now;
         var input = ReadInput(12, isTest, testDataCount);
         var data = ParseData(input);
         data = UnFold(data);
-        long total = 0;
+        long total = RunLogic(data);
         
-        data.ForEach(springRow =>
-        {
-            var subTotal = RunLogic(springRow.Id, springRow.Row, springRow.Groups);
-            total += subTotal;
-            WriteLine($"Id: {springRow.Id} subTotal: {subTotal} springRow: {springRow.Row} groups: {string.Join(",",springRow.Groups)}");
-            //WriteLine("");
-        });
         _testOutputHelper.WriteLine($"Total: {total} < 7427");
+        var endTime = DateTime.Now;
+        _testOutputHelper.WriteLine($"Time: {endTime-startTime} < 00.7295700");
         //total.Should().Be(expectedAnswer);
+    }
+
+    private long RunLogic(List<SpringRow>? data)
+    {
+        var startTime = DateTime.Now;
+
+        var workItemCount = 0;
+        var completedWork = 0;
+        data.ForEach(springRow =>
+            {
+                ThreadPool.QueueUserWorkItem(data=>
+                {
+                    GetVariationsAction(data);
+                    WriteLine($"GetVariations {completedWork+1}/{workItemCount}");
+                    completedWork++;
+                }, springRow);
+                workItemCount++;
+            }
+        );
+        while(completedWork < workItemCount){}
+        
+        var getVar = DateTime.Now;
+        _testOutputHelper.WriteLine($"GetVariations: {getVar - startTime} < 00.1624260");
+        List<(List<List<int>>, SpringRow)> variations;
+        lock (_vars)
+        {
+            variations = _vars.ToList();
+        }
+        
+        workItemCount = 0;
+        completedWork = 0;
+        variations.ForEach(t =>
+            {
+                ThreadPool.QueueUserWorkItem(data=>
+                {
+                    TryVariationsAction(data);
+                    WriteLine($"TryVariations {completedWork+1}/{workItemCount}");
+                    completedWork++;
+                }, t);
+                workItemCount++;
+            }
+            );
+        while(completedWork < workItemCount){}
+        var endTime = DateTime.Now;
+        _testOutputHelper.WriteLine($"TryVariations: {endTime - getVar} < 00.0564950");
+        long total;
+        lock (_subTotals)
+        {
+            total = _subTotals.Sum();
+        }
+        return total;
+    }
+    private void GetVariationsAction(object input)
+    {
+        var springRow = (SpringRow)input;
+        if (springRow.Row.Length == springRow.Groups.Sum() + springRow.Groups.Count - 1)
+        {
+            lock (_subTotals)
+            {
+                _subTotals.Add(1);
+            }
+            return;
+        }
+        var variations = GetVariations(springRow.Id, springRow.Row.Split('.').ToList().Count, springRow.Groups.Count);
+        lock (_vars)
+        {
+            _vars.Add((variations,springRow));
+        }
+    }
+
+    private void TryVariationsAction(object input)
+    {
+        var t = ((List<List<int>>, SpringRow))input;
+        var (variations, springRow) = t;
+        variations.ForEach(v =>
+            {
+                var subTotal = TryVariations(springRow.Id, v, springRow.Row, springRow.Groups);
+                lock (_subTotals)
+                {
+                    _subTotals.Add(subTotal);
+                }
+            }
+        );
     }
 
     private void WriteLine(string message)
     {
-        //_testOutputHelper.WriteLine(message);
+        _testOutputHelper.WriteLine(message);
     }
-
-    private int RunLogic(int id, string springRow, List<int> groups)
+    
+    private List<List<int>> GetVariations(int id, int splitCount, int groupsCount)
     {
-        var max = groups.Count;
-        var split = springRow.Split('.').ToList();
-        
-        var count = 0;
-        var numBase = groups.Count + 1;
-        for (var i = (int)Math.Pow(groups.Count + 1, split.Count)-1; i >= 0; i--)
+        var key = $"{splitCount}_{groupsCount}";
+        bool hasValue;
+        List<List<int>>? result;
+        lock (_tryGetVariations)
         {
-            var toTry = new List<int>();
-            long ttCount = 0;
-            for (var j = split.Count-1; j >= 0; j--)
+            hasValue = _tryGetVariations.TryGetValue(key, out result);
+        }
+        if(hasValue)
+        {
+            return result;
+        }
+        var count = 0;
+        var numBase = groupsCount + 1;
+        var caseToTry = new List<List<int>>();
+        List<int> toTry;
+        long ttCount;
+        int posInNumReversed;
+        var differentWayToSplitGroups = (int)Math.Pow(numBase, splitCount) - 1;
+        for (var i = differentWayToSplitGroups; i >= 0; i-=groupsCount)
+        {
+            toTry = new List<int>();
+            ttCount = 0;
+            posInNumReversed = splitCount - 1;
+            while (toTry.Sum() <= groupsCount)
             {
-                var baseForIndex = Convert.ToInt64(Math.Pow(numBase, j));
-                if (j == 0)
+                var baseForIndex = Convert.ToInt64(Math.Pow(numBase, posInNumReversed));
+                if (posInNumReversed == 0)
                 {
                     toTry = toTry.Append((int)(i-ttCount)).ToList();
                     break;
                 }
                 toTry = toTry.Append((int)((i-ttCount)/baseForIndex)).ToList();
                 ttCount += toTry.Last() * baseForIndex;
+                posInNumReversed--;
             }
-            if (toTry.Sum() == max)
+            if (toTry.Sum() == groupsCount)
             {
-                count += TryVariations(id, toTry, split, groups);
+                caseToTry.Add(toTry);
             }
         }
 
-        return count;
+        lock (_tryGetVariations)
+        {
+            if(!_tryGetVariations.TryGetValue(key, out List<List<int>>? _))
+            {
+                _tryGetVariations.Add(key,caseToTry);
+            }
+        }
+        
+        return caseToTry;
     }
     
-    private Dictionary<(string, List<int>),int> cache = new();
-    
-    private int TryVariations(int id, List<int> toTry, List<string> split, List<int> groups)
+    private int TryVariations(int id, List<int> toTry, string springRow, List<int> groups)
     {
+        var split = springRow.Split('.');
         var subCount = 1;
         var previousGroupsSum = 0;
         for (var i = 0; i < toTry.Count; i++)
@@ -100,27 +221,36 @@ public class Day12
             int subSubCount;
             var s = split[i];
             var g = groups.Skip(previousGroupsSum).Take(groupSize).ToList();
-            if (cache.TryGetValue((s, g), out var value))
+            bool gotValue;
+            int value;
+            lock (_tryVariationsCache)
+            {
+                gotValue = _tryVariationsCache.TryGetValue(s + string.Join("", g), out value);
+            }
+            if (gotValue)
             {
                 subSubCount = value;
             }
             else
             {
-                _testOutputHelper.WriteLine(".");
                 subSubCount = FindPossibilities(id, s, g);
-                cache.Add((s, g), subSubCount);
+                lock (_tryVariationsCache)
+                {
+                    if (!_tryVariationsCache.TryGetValue(s+string.Join("",g), out _))
+                    {
+                        _tryVariationsCache.Add(s+string.Join("",g), subSubCount);
+                    }
+                }
+                
             }
-            
-            if (subSubCount != 0)
+
+            if (subCount == 0)
             {
-                WriteLine($"Id: {id} subSubCount: {subSubCount} springRow: {split[i]} groups: {string.Join(",",groups.Skip(previousGroupsSum).Take(groupSize).ToList())}");
-                WriteLine("");
+                return 0;
             }
             subCount *= subSubCount;
             previousGroupsSum += groupSize;
         }
-        //WriteLine($"Id: {id} subCount: {subCount} springRow: {string.Join(".",split)} groups: {string.Join(",",groups)} toTry: {string.Join(",",toTry)}");
-        //WriteLine("");
         return subCount;
     }
 
@@ -134,7 +264,14 @@ public class Day12
         {
             return 1;
         }
-        return BruteForce(id, springRow, groups);
+
+        var result = BruteForce(id, springRow, groups);
+        if (result <= 1)
+        {
+            var b = "p";
+        }
+
+        return result;
     }
     
     private bool HasNoPossibilities(int id, string springRow, List<int> groups)
@@ -148,6 +285,21 @@ public class Day12
         {
             return true;
         }
+
+        var split = springRow.Split('?');
+        if (split.Length > 0 && groups.Count > 0)
+        {
+            var maxString = split.MaxBy(s=>s.Length);
+            if (maxString != null)
+            {
+                var largestSet = maxString.Length;
+                if (largestSet > groups.Max())
+                {
+                    return true;
+                }
+            }
+        }
+        
         return false;
     }
     
@@ -155,13 +307,11 @@ public class Day12
     {
         if (springRow.Length == 0 || groups.Count == 0)
         {
-            WriteLine("Spring or groups are 0");
             return true;
         }
 
         if (!springRow.Contains('?'))
         {
-            WriteLine("no unknowns");
             return true;
         }
         
@@ -175,8 +325,21 @@ public class Day12
         return score;
     }
 
+    private readonly Dictionary<string, List<List<char>>> _recursiveMakeLinesCache = new();
+
     private List<List<char>> RecursiveMakeLines(string springRow, List<int> groups, List<int> separators, int maxDepth, int depth)
     {
+        var key = $"{springRow}@{string.Join(',',groups)}@{string.Join(',',separators)}";
+        bool gotValue;
+        List<List<char>> value;
+        lock (_recursiveMakeLinesCache)
+        {
+            gotValue = _recursiveMakeLinesCache.TryGetValue(key, out value);
+        }
+        if (gotValue)
+        {
+            return value;
+        }
         if (depth == maxDepth)
         {
             var newLines = new List<List<char>>();
@@ -199,7 +362,13 @@ public class Day12
             separators[^(maxDepth-depth)] += 1;
         }
         lines = lines.Concat(RecursiveMakeLines(springRow, groups, separators.ToList(), maxDepth, depth + 1)).ToList();
-        
+        lock (_recursiveMakeLinesCache)
+        {
+            if (!_recursiveMakeLinesCache.TryGetValue(key, out _))
+            {
+                _recursiveMakeLinesCache.Add(key, lines);
+            }
+        }
         return lines;
     }
 
@@ -223,7 +392,6 @@ public class Day12
                 return false;
             }
         }
-        WriteLine($"id: {id} line: {string.Join("",line)} pattern: {string.Join("",pattern)}");
         return true;
     }
     
