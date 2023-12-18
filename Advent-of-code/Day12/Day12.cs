@@ -80,11 +80,6 @@ public class Day12
         total.Should().Be(testCase.expectedAnswer);
     }
     
-    public static IEnumerable<object[]> GetTestCasesToUnfold()
-    {
-        return Day12TestCases.TestCasesToUnfold();
-    }
-    
     [Theory]
     [MemberData(nameof(GetTestCases))]
     public void Test_2_2(Day12TestCases.TestCase testCase)
