@@ -54,7 +54,7 @@ public class Day20
     {
         int count = 0;
         var startMods = mods.Values.ToList();
-        while (count < 100000)
+        while (count < 4100)
         {
             count += 1;
             var (totalLowDelta, totalHighDelta, rxLowCount) = DoLogic(mods, false, count);
