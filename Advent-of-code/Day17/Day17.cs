@@ -1,3 +1,4 @@
+using System.Configuration;
 using System.Reflection.Metadata.Ecma335;
 using FluentAssertions;
 using Xunit.Abstractions;
@@ -15,15 +16,29 @@ public class Day17
     }
 
     [Theory]
-    [InlineData(true, 0, 103)]
-    [InlineData(true, 1, 1)]
-    [InlineData(false, 0, 670)]
-    public void Test_1(bool isTest, int testDataCount, long expectedAnswer)
+    //[InlineData(true, 0, 102, 10)]
+    //[InlineData(false, 0, 660, 10)]
+    //[InlineData(false, 0, 660, 9)]
+    //[InlineData(false, 0, 660, 8)]
+    //[InlineData(false, 0, 660, 7)]
+    //[InlineData(false, 0, 660, 6, true)]
+    //[InlineData(false, 0, 660, 6, false)]
+    [InlineData(false, 0, 660, 5, false)]
+    [InlineData(false, 0, 660, 4, false)]
+    public void Test_1(bool isTest, int testDataCount, int expectedAnswer, int weight, bool useNewRule)
     {
         var input = ReadInput(Day, isTest, testDataCount);
         var data = ParseInput(input);
-        long total = RunLogic(data);
-        total.Should().BeLessThan(expectedAnswer);
+        int total = 0;
+        WriteLine();
+        var subTotal = RunLogic2(data, weight, useNewRule);
+        WriteLine($"subTotal: {subTotal} with weight: {weight}");
+
+        total = subTotal;
+        
+        WriteLine();
+        WriteLine($"Total: {total}");
+        total.Should().Be(expectedAnswer);
     }
     [Theory]
     [InlineData(true, 0, 145)]
@@ -36,118 +51,111 @@ public class Day17
         _testOutputHelper.WriteLine($"total: {total}");
     }
 
-    private int RunLogic(IReadOnlyList<List<Position>> data)
+    private int RunLogic2(IReadOnlyList<List<Position>> data, int weight, bool useNewRule)
     {
-        var startPosition = data.First().First();
-        startPosition.CostToReach = 0;
+        var current = data.First().First().Clone();
+        current.CostToReach = 0;
         var endPosition = data.Last().Last();
-        var frontier = new PriorityQueue<Position,int>(Comparer<int>.Create((a,b)=>a-b));
-        frontier.Enqueue(startPosition, 0);
-
-        var path = new Dictionary<string, Position?> { { startPosition.Key, null } };
+        var queue = new PriorityQueue<Position,int>(Comparer<int>.Create((a,b)=>a-b));
+        queue.EnsureCapacity(500000);
+        queue.Enqueue(current, 0);
         var count = 0;
-        Position current = startPosition;
-        while (frontier.Count != 0)
+        var highest = 0;
+        while (queue.Count != 0 && (current.Row != endPosition.Row || current.Col != endPosition.Col))
         {
-            count++;
-            current = frontier.Dequeue();
-            var neighbors = FindNeighbors(data, current, path[current.Key]);
-            foreach (var next in neighbors)
+            if (queue.Count > 500000)
             {
-                var isSameRowOrCol = IsSameRowOrCol(current, next, path);
-                var costToReach = current.CostToReach + next.CostToMoveTo;
-                if (isSameRowOrCol || (path.ContainsKey(next.Key) && next.CostToReach < costToReach))
-                {
-                    continue;
-                }
-                next.CostToReach = costToReach;
-                if (path.TryGetValue(next.Key, out _))
-                {
-                    path[next.Key] = current;
-                    continue;
-                }
-                path.Add(next.Key, current);
-                frontier.Enqueue(next, costToReach); // + (endPosition.Row - next.Row) + (endPosition.Col - next.Col));
+                queue.TrimExcess();
             }
+            current = queue.Dequeue();
+            var skip = false;
+            if (useNewRule)
+            {
+                
+            }
+            if (skip)
+            {
+                WriteLine("Rule works!");
+                continue;
+            }
+            // WriteLine(current.Key);
+            if (current.Row + current.Col > highest)
+            {
+                WriteLine($"Cur key: {current.Key} CostToReach: {current.CostToReach}  Queue size: {queue.Count}");
+                highest = current.Row + current.Col;
+            }
+            var neighbors = FindNeighbors(data, current);
+            foreach (var neighbor in neighbors)
+            {
+                if (current.Path.Where(past => past.Row == neighbor.Row && past.Col == neighbor.Col).ToList().Count > 0)
+                {
+                    continue;
+                }
+                var costToReach = current.CostToReach + neighbor.CostToMoveTo;
+                
+                var newNext = neighbor.Clone();
+                newNext.CostToReach = costToReach;
+                newNext.Path = current.Path.ToList();
+                newNext.Path.Add(current.Clone());
+                queue.Enqueue(newNext, costToReach + (endPosition.Row - newNext.Row)*weight + (endPosition.Col - newNext.Col)*weight);
+            }
+
+            count++;
         }
         WriteLine($"Count: {count}");
-        
-        
-        foreach (var positions in data)
-        {
-            var newRow = "";
-            foreach (var position in positions)
-            {
-                newRow += $" {position.CostToReach:000} ";
-            }
-            WriteLine(newRow);
-        }
-        
-        var pathPos = endPosition;
-        var stringToLog = "";
-        var cost = 0;
-        while (pathPos != startPosition)
-        {
-            cost += pathPos.CostToMoveTo;
-            stringToLog = $" {pathPos.Key} =>{stringToLog}";
-            pathPos = path[pathPos.Key];
-        }
-        stringToLog = $" {pathPos.Key} =>{stringToLog}";
-        WriteLine($"cost: {cost}");
-        WriteLine(stringToLog);
-        
-        foreach (var positions in data)
-        {
-            var newRow = "";
-            foreach (var position in positions)
-            {
-                newRow += stringToLog.Contains($" {position.Key} ") ? '#' : '.';
-            }
-            WriteLine(newRow);
-        }
-        return endPosition.CostToReach;
+        //PrintMap(current, data);
+        return current.CostToReach;
     }
 
-    private bool IsSameRowOrCol(Position current, Position next, Dictionary<string,Position?> path)
+    private void PrintMap(Position current, IReadOnlyList<List<Position>> data)
     {
-        Position previousPos = current;
-        var sameRow = current.Row == next.Row;
-        var sameCol = current.Col == next.Col;
-        for (var i = 0; i < 3; i++)
+        WriteLine();
+        foreach (var row in data)
         {
-            var nextPrevious = path[previousPos.Key];
-            if (nextPrevious == null)
+            var rowToPrint = "";
+            foreach (var pos in row)
             {
-                sameRow = false;
-                sameCol = false;
-                break;
+                if (current.Path.Where(past => past.Row == pos.Row && past.Col == pos.Col).ToList().Count > 0)
+                {
+                    rowToPrint += "# ";
+                    continue;
+                }
+                rowToPrint += ". ";
             }
-            sameRow = sameRow && nextPrevious.Row == previousPos.Row;
-            sameCol = sameCol && nextPrevious.Col == previousPos.Col;
-            previousPos = nextPrevious;
+            WriteLine(rowToPrint);
         }
-
-        return sameRow || sameCol;
+        WriteLine();
+        WriteLine();
     }
-    
-    private List<Position> FindNeighbors(IReadOnlyList<List<Position>> data, Position current, Position? previous)
+
+    private List<Position> FindNeighbors(IReadOnlyList<List<Position>> data, Position current)
     {
+        var previous = current.Path.Count >= 1 ? current.Path.Last() : null;;
+        var threeAgo = current.Path.Count >= 3 ? current.Path[^3] : null;
+        if (threeAgo != null)
+        {
+            var b = "P";
+        }
         var stepSize = 1;
         var neighbors = new List<Position>();
-        if (current.Row > 1-stepSize && (previous == null || previous.Row != current.Row-1 ))
+        if (current.Row > 1-stepSize && (previous == null || previous.Row != current.Row-1 ) && (threeAgo == null || threeAgo.Row != current.Row+3))
         {
+            // Up
             neighbors.Add(data[current.Row-stepSize][current.Col]);
         }
-        if (current.Col > 1-stepSize && (previous == null || previous.Col != current.Col-1 ))
+        if (current.Col > 1-stepSize && (previous == null || previous.Col != current.Col-1 ) && (threeAgo == null || threeAgo.Col != current.Col+3))
         {
+            // Left
             neighbors.Add(data[current.Row][current.Col-stepSize]);
         }
-        if (current.Row < data.Count-stepSize && (previous == null || previous.Row != current.Row+1 ))
+        if (current.Row < data.Count-stepSize && (previous == null || previous.Row != current.Row+1 ) && (threeAgo == null || threeAgo.Row != current.Row-3))
         {
+            // Down
             neighbors.Add(data[current.Row+stepSize][current.Col]);
         }
-        if (current.Col < data[0].Count-stepSize && (previous == null || previous.Col != current.Col+1 ))
+        if (current.Col < data[0].Count-stepSize && (previous == null || previous.Col != current.Col+1 ) && (threeAgo == null || threeAgo.Col != current.Col-3))
         {
+            // Right
             neighbors.Add(data[current.Row][current.Col+stepSize]);
         }
 
@@ -158,15 +166,37 @@ public class Day17
     {
         public readonly int Row;
         public readonly int Col;
-        public int CostToReach = int.MaxValue;
+        public int CostToReach;
         public int CostToMoveTo;
+        public List<Position> Path = new();
         public string Key => $"{Row:00}_{Col:00}";
 
-        public Position(int row, int col, int costToMoveTo)
+        public Position(int row, int col, int costToMoveTo, int costToReach = int.MaxValue)
         {
             Row = row;
             Col = col;
             CostToMoveTo = costToMoveTo;
+            CostToReach = costToReach;
+        }
+
+        public Position Clone()
+        {
+            return new Position(Row, Col, CostToMoveTo, CostToReach);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            if (obj.GetType() != typeof(Position))
+            {
+                return false;
+            }
+
+            var pos = (Position)obj;
+            return Row == pos.Row && Col == pos.Col;
         }
     }
 
