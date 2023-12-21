@@ -50,14 +50,14 @@ public class Day20
         return (totalHigh) * (totalLow);
     }
     
-    private long RunLogic2(IReadOnlyDictionary<string, Module> mods)
+    private int RunLogic2(IReadOnlyDictionary<string, Module> mods)
     {
-        long count = 0;
+        int count = 0;
         var startMods = mods.Values.ToList();
-        while (true)
+        while (count < 100000)
         {
             count += 1;
-            var (totalLowDelta, totalHighDelta, rxLowCount) = DoLogic(mods, false);
+            var (totalLowDelta, totalHighDelta, rxLowCount) = DoLogic(mods, false, count);
             if (rxLowCount >= 1)
             {
                 break;
@@ -88,7 +88,7 @@ public class Day20
         return count;
     }
 
-    private (int,int, int) DoLogic(IReadOnlyDictionary<string, Module> mods, bool isTest1 = true)
+    private (int,int, int) DoLogic(IReadOnlyDictionary<string, Module> mods, bool isTest1 = true, int count = 0)
     {
         var lowDelta = 0;
         var highDelta = 0;
@@ -104,10 +104,6 @@ public class Day20
                 continue;
             }
             var (newPulse, newMods) = mod.SendPulse(items.Item2,items.Item3);
-            if (newMods.Count > 0)
-            {
-                WriteLine($"{items.Item1} {mod.GetType()} {newPulse} => {string.Join(",", newMods)}");
-            }
             if (isTest1)
             {
                 switch (newPulse)
@@ -122,6 +118,10 @@ public class Day20
             }
             else
             {
+                if (newMods.Contains("zr") && newPulse == Pulse.High)
+                {
+                    WriteLine($"{items.Item1} {count}");
+                }
                 if (newMods.Contains("rx") && newPulse == Pulse.Low)
                 {
                     rxLowCount += 0;
@@ -274,5 +274,43 @@ public class Day20
     private void WriteLine(string message = "")
     {
         _testOutputHelper.WriteLine(message);
+    }
+
+    [Fact]
+    public void FindLowestCommonMultiplier()
+    {
+        var numbers = new List<int> { 4091, 3853, 4093, 4073 };
+        long total = 1;
+        foreach (var number in numbers)
+        {
+            total *= number;
+            var factors = CalcFactors(number);
+            WriteLine($"{number}: {string.Join(",", factors)}");
+        }
+        WriteLine($"Total {total}");
+    }
+    
+    private List<int> CalcFactors(int value)
+    {
+        var factors = new List<int>();
+        var root = Math.Sqrt(value);
+        for (var i = 2; i < root; i++)
+        {
+            if (value % i != 0)
+            {
+                continue;
+            }
+            
+            if (!factors.Contains(i))
+            {
+                factors.Add(i);
+            }
+            if (!factors.Contains(value/i))
+            {
+                factors.Add(value/i);
+            }
+        }
+
+        return factors;
     }
 }
