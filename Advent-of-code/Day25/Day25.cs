@@ -3,14 +3,14 @@ using System.Reflection.Metadata.Ecma335;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Advent_of_code.Day22;
+namespace Advent_of_code.Day25;
 
-public class Day22
+public class Day25
 {
     private readonly ITestOutputHelper _testOutputHelper;
-    private const int Day = 22;
+    private const int Day = 25;
 
-    public Day22(ITestOutputHelper testOutputHelper)
+    public Day25(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
@@ -44,15 +44,37 @@ public class Day22
     {
         public readonly int Row;
         public readonly int Col;
-        public int Height;
-        
-        public string Key => $"{Row:00}_{Col:00}_{Height:00}";
+        public int CostToReach;
+        public int CostToMoveTo;
+        public List<Position> Path = new();
+        public string Key => $"{Row:00}_{Col:00}";
 
-        public Position(int row, int col, int height)
+        public Position(int row, int col, int costToMoveTo, int costToReach = int.MaxValue)
         {
             Row = row;
             Col = col;
-            Height = height;
+            CostToMoveTo = costToMoveTo;
+            CostToReach = costToReach;
+        }
+
+        public Position Clone()
+        {
+            return new Position(Row, Col, CostToMoveTo, CostToReach);
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+            if (obj.GetType() != typeof(Position))
+            {
+                return false;
+            }
+
+            var pos = (Position)obj;
+            return Row == pos.Row && Col == pos.Col;
         }
     }
 
