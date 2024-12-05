@@ -1,16 +1,14 @@
-using System.Configuration;
-using System.Reflection.Metadata.Ecma335;
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Advent_of_code.Day22;
+namespace Advent_of_code.Template;
 
-public class Day22
+public class Day_
 {
     private readonly ITestOutputHelper _testOutputHelper;
-    private const int Day = 22;
+    private const int Day = 25;
 
-    public Day22(ITestOutputHelper testOutputHelper)
+    public Day_(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
@@ -42,31 +40,19 @@ public class Day22
 
     private class Position
     {
-        public readonly int Row;
-        public readonly int Col;
-        public int Height;
         
-        public string Key => $"{Row:00}_{Col:00}_{Height:00}";
-
-        public Position(int row, int col, int height)
-        {
-            Row = row;
-            Col = col;
-            Height = height;
-        }
     }
 
-    private List<List<Position>> ParseInput(List<List<int>> input)
+    private List<List<int>> ParseInput(List<List<int>> input)
     {
-        var data = new List<List<Position>>();
+        var data = new List<List<int>>();
         for (var rowIndex = 0; rowIndex < input.Count; rowIndex++)
         {
-            var newRow = new List<Position>();
+            var newRow = new List<int>();
             for (var colIndex = 0; colIndex < input[rowIndex].Count; colIndex++)
             {
-                var costToMoveTo = input[rowIndex][colIndex];
-                var pos = new Position(rowIndex, colIndex, costToMoveTo);
-                newRow.Add(pos);
+                var i = input[rowIndex][colIndex];
+                newRow.Add(i);
             }
             data.Add(newRow);
         }
@@ -77,7 +63,7 @@ public class Day22
     {
         var input = new List<List<int>>();
         using var sr = new StreamReader(
-            $"/Users/Andy.Tootell/RiderProjects/Advent-of-code/Advent-of-code/Day{day}/{(isTest?"Test":"")}Data{(isTest?testDataCount:"")}.txt");
+            $"/Users/Andy.Tootell/RiderProjects/Advent-of-code/Advent-of-code/2024/Day{day}/{(isTest?"Test":"")}Data{(isTest?testDataCount:"")}.txt");
         while (!sr.EndOfStream)
         {
             var line = sr.ReadLine()!;
