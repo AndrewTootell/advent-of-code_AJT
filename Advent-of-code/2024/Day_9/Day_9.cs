@@ -1,14 +1,14 @@
 using FluentAssertions;
 using Xunit.Abstractions;
 
-namespace Advent_of_code._2024.Day_4;
+namespace Advent_of_code._2024.Day_9;
 
-public class Day_4
+public class Day_9
 {
     private readonly ITestOutputHelper _testOutputHelper;
-    private const int Day = 4;
+    private const int Day = 9;
 
-    public Day_4(ITestOutputHelper testOutputHelper)
+    public Day_9(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
     }
